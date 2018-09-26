@@ -1,3 +1,0 @@
-E:/C++/JsonCheck/build/CMakeFiles/rebuild_cache.dir
-E:/C++/JsonCheck/build/CMakeFiles/main.dir
-E:/C++/JsonCheck/build/CMakeFiles/edit_cache.dir
