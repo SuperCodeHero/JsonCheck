@@ -38,6 +38,7 @@ int main()
                 status = AFTER_LBRACE;
                 break;
             }
+            
             }
             break;
         }
