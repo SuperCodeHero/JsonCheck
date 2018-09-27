@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.json": "jsonc",
         "iostream": "cpp",
         "xstring": "cpp",
         "regex": "cpp",
@@ -44,6 +45,7 @@
         "xmemory0": "cpp",
         "xstddef": "cpp",
         "xtr1common": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "stack": "cpp"
     }
 }

@@ -11,7 +11,7 @@
 
 using namespace std;
 
-typedef stack<char, list<char> > StatusStack;
+typedef stack<int, list<int> > StatusStack;
 
 int main()
 {
@@ -24,25 +24,6 @@ int main()
         char c = json[i];
         if(status != AFTER_QUOTATION && charIsBlank(c))
             continue;
-            
-        
-        switch(c)
-        {
-        case LBRACE:
-        {
-            switch(status)
-            {
-            case NOT_START:
-            {
-                stack.push(c);
-                status = AFTER_LBRACE;
-                break;
-            }
-            
-            }
-            break;
-        }
-        }
 
         switch(status)
         {
@@ -51,53 +32,153 @@ int main()
             if(c != LBRACE)
                 error("begin '{'");
             
-            stack.push(c);
             status = AFTER_LBRACE;
+            stack.push(status);
             break;
         }
         case AFTER_LBRACE:
         {
-            if(c != QUOTATION)
-                error("after '{' not string");
-            
-            stack.push(c);
-            status = AFTER_QUOTATION;
-            break;
+            switch(c)
+            {
+            case QUOTATION:
+            {
+                status = AFTER_QUOTATION;
+                stack.push(status);
+                break;
+            }
+            case RBRACE:
+            {
+                int ss = stack.top();
+                if(ss != AFTER_LBRACE)
+                    error("'}' no match");
+                
+                stack.pop();
+                status = AFTER_RBRACE;
+                stack.push(status);
+                break;
+            }
+            default: error(string("char '") + c + "'");
+
+            }
+
         }
         case AFTER_QUOTATION:
         {
             if(c == '\n')
                 error("'\"' no match");
 
-            switch(c)
-            {
-            case QUOTATION:
-            {
-                char sc = stack.top();
-                if(sc != QUOTATION)
-                    error("'\" no match 2'");
-                stack.pop();
+            if(c != QUOTATION)
+                break;
 
-                status = AFTER_QUOTATION_MATCHED;
+            int ss = stack.top();
+            if(ss != AFTER_QUOTATION)
+                error("'\" no match 2'");
+            stack.pop();
+
+            ss = stack.top();
+            switch(ss)
+            {
+            case AFTER_LBRACE:
+            {
+                status = BEFORE_VALUE_COLON;
+                stack.push(status);
                 break;
             }
-            default: break;
+            case JSON_VALUE:
+            {
+                stack.pop();
+                status = AFTER_JSON_VALUE;
+                stack.push(status);
+                break;
             }
-
+            //TODO: 
+            }
             break;
         }
-        case AFTER_QUOTATION_MATCHED:
+        case BEFORE_VALUE_COLON:
         {
+            stack.pop();
             switch(c)
             {
             case COLON:
             {
-
+                status = JSON_VALUE;
+                stack.push(status);
                 break;
             }
+            default:error(" after ':' no value");
             }
             break;
         }
+        case JSON_VALUE:
+        {
+            switch(c)
+            {
+            case QUOTATION:
+            {
+                status = AFTER_QUOTATION;
+                stack.push(status);
+                break;
+            }
+            //TODO:
+            }
+            break;
+        }
+        case AFTER_JSON_VALUE:
+        {
+            stack.pop();
+
+            int ss = stack.top();
+            switch(c)
+            {
+            case COMMA:
+            {   
+                break;
+            }
+            case RBRACE:
+            {
+                if(ss != AFTER_LBRACE)
+                    error(string("char '") + c + "'");
+                
+                stack.pop();
+                status = AFTER_RBRACE;
+                stack.push(status);
+                break;
+            }
+            case RBRACKET:
+            {
+                if(ss != AFTER_LBRACKET)
+                    error(string("char '") + c + "'");
+                
+                stack.pop();
+                status = AFTER_RBRACKET;
+                stack.push(status);
+                break;
+            }
+            default: error(string("char '") + c + "'");
+
+            }
+            break;
+        }
+        case AFTER_RBRACE:
+        {
+            stack.pop();
+            int ss = stack.top();
+            switch(c)
+            {
+            case RBRACE:
+            {
+                if(ss != JSON_VALUE)
+                    error(string("char '") + c + "'");
+                stack.pop();
+                status = AFTER_JSON_VALUE;
+                stack.push(status);
+                break;
+            }
+
+            }
+        }
+
         }
 
     }
